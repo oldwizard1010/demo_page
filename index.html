@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<head></head>
+<body></body>
+<script>
+content = (new URLSearchParams(window.location.search)).get('content')
+bytes = [...content.matchAll(/[0-9a-f]{2}/g)].map(a => parseInt(a[0], 16));
+decoded = new TextDecoder().decode(new Uint8Array(bytes))
+document.body.innerHTML = decoded
+//alert(atob(content))
+</script>
