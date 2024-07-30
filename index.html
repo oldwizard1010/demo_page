@@ -2,9 +2,17 @@
 <head></head>
 <body></body>
 <script>
-content = window.location.hash.slice(1) //(new URLSearchParams(window.location.search)).get('content')
+function updateBody(){
+    let content = location.hash.slice(1)
+    let bytes = [...content.matchAll(/[0-9a-f]{2}/g)].map(a => parseInt(a[0], 16));
+    let decoded = new TextDecoder().decode(new Uint8Array(bytes))
+    document.body.setHTMLUnsafe(decoded)
+}
+/* content = window.location.hash.slice(1) //(new URLSearchParams(window.location.search)).get('content')
 bytes = [...content.matchAll(/[0-9a-f]{2}/g)].map(a => parseInt(a[0], 16));
 decoded = new TextDecoder().decode(new Uint8Array(bytes))
-document.body.innerHTML = decoded
+document.body.innerHTML = decoded */
+updateBody()
+addEventListener("hashchange", (event) => updateBody())
 //alert(atob(content))
 </script>
