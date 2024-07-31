@@ -2,11 +2,47 @@
 <head></head>
 <body></body>
 <script>
+
+async function decompressAndDecode(encodedString) {
+    const decoder = new TextDecoder();
+
+    // Decode the URI-encoded compressed data
+    const decodedData = atob(decodeURIComponent(encodedString));
+
+    // Convert the decoded data to a Uint8Array
+    const compressedData = new Uint8Array(decodedData.split("").map((c) => c.charCodeAt(0)));
+
+    // Create a ReadableStream from the compressed data
+    const compressedStream = new ReadableStream({
+        start(controller) {
+            controller.enqueue(compressedData);
+            controller.close();
+        }
+    });
+
+    // Decompress the ReadableStream using the gzip algorithm
+    const decompressedStream = compressedStream.pipeThrough(new DecompressionStream("gzip"));
+
+    // Read the decompressed data from the stream
+    const reader = decompressedStream.getReader();
+
+    let decompressedData = "";
+    let result;
+
+    while ((result = await reader.read())) {
+        if (result.done) {
+            return decompressedData;
+        } else {
+            decompressedData += decoder.decode(result.value);
+        }
+    }
+}
+
 function updateBody(){
     let content = location.hash.slice(1)
+    decompressAndDecode(content).then(res => {let bytes = [...res.matchAll(/[0-9a-f]{2}/g)].map(a => parseInt(a[0],
+    16)); let decoded = new TextDecoder().decode(new Uint8Array(bytes)); document.body.setHTMLUnsafe(decoded)})
     let bytes = [...content.matchAll(/[0-9a-f]{2}/g)].map(a => parseInt(a[0], 16));
-    let decoded = new TextDecoder().decode(new Uint8Array(bytes))
-    document.body.setHTMLUnsafe(decoded)
 }
 /* content = window.location.hash.slice(1) //(new URLSearchParams(window.location.search)).get('content')
 bytes = [...content.matchAll(/[0-9a-f]{2}/g)].map(a => parseInt(a[0], 16));
